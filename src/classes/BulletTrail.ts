@@ -8,7 +8,7 @@ export interface BulletTrailParameters {
 
 export class BulletTrail extends THREE.Mesh {
   readonly elapsed: THREE.IUniform<number> = { value: 0 };
-  readonly duration: THREE.IUniform<number> = { value: 1 };
+  readonly duration: THREE.IUniform<number> = { value: 15 };
   private readonly vector: THREE.Vector3;
 
   override readonly geometry: THREE.BufferGeometry;
@@ -106,9 +106,11 @@ export class BulletTrail extends THREE.Mesh {
         void main() {
           float invScale = 1.0 / scale;
           float timeStep = elapsed / duration;
+          //float size = 1.0 * invScale;
+          float size = 0.05; // todo needs to be metric
 
-          float lowerEdge = smoothstep(0.0 + timeStep, 0.2 + timeStep, vUv.y + 0.1);
-          float upperEdge = smoothstep(0.05 + timeStep, 0.0 + timeStep, vUv.y - 0.1);
+          float lowerEdge = smoothstep(0.0 + timeStep, 0.2 + timeStep, vUv.y + size);
+          float upperEdge = smoothstep(0.05 + timeStep, 0.0 + timeStep, vUv.y - size);
           
           float horizontal = 1.0 - abs(length(vUv.x) * 2.0 - 1.0);
 

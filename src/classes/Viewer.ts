@@ -34,8 +34,8 @@ export class Viewer {
     // this.scene.add(mesh);
 
     this.trail = new BulletTrail({
-      start: new THREE.Vector3(2, 0, 0),
-      end: new THREE.Vector3(0, 1, 1),
+      start: new THREE.Vector3(1, 0, 0),
+      end: new THREE.Vector3(15, 1, 1),
       duration: 1,
     });
     this.scene.add(this.trail);
