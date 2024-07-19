@@ -68,7 +68,9 @@ export class BulletTrail extends THREE.Mesh {
         uniform vec3 direction;
         uniform vec3 objectPosition;
         uniform float scale;
+
         out vec2 vUv;
+        flat out float invScale;
 
         void main() {
           vUv = uv;
@@ -89,6 +91,8 @@ export class BulletTrail extends THREE.Mesh {
 
           vec3 scaledPos = position;
           scaledPos.y *= scale;
+
+          invScale = 1.0 / scale;
     
           gl_Position = projectionMatrix * modelViewMatrix * rotMatrix * vec4(scaledPos, 1.0);
         }
@@ -99,18 +103,16 @@ export class BulletTrail extends THREE.Mesh {
         uniform float elapsed;
         uniform float duration;
 
-        uniform float scale;
+        flat in float invScale;
 
         in vec2 vUv;
 
         void main() {
-          float invScale = 1.0 / scale;
           float timeStep = elapsed / duration;
-          //float size = 1.0 * invScale;
-          float size = 0.05; // todo needs to be metric
+          float size = 1.0 * invScale;
 
-          float lowerEdge = smoothstep(0.0 + timeStep, 0.2 + timeStep, vUv.y + size);
-          float upperEdge = smoothstep(0.05 + timeStep, 0.0 + timeStep, vUv.y - size);
+          float upperEdge = smoothstep(2.0 * invScale, 1.5 * invScale, vUv.y);
+          float lowerEdge = smoothstep(0.0 * invScale, 1.5 * invScale, vUv.y);
           
           float horizontal = 1.0 - abs(length(vUv.x) * 2.0 - 1.0);
 
