@@ -8,7 +8,7 @@ export interface BulletTrailParameters {
 
 export class BulletTrail extends THREE.Mesh {
   readonly elapsed: THREE.IUniform<number> = { value: 0 };
-  readonly duration: THREE.IUniform<number> = { value: 15 };
+  readonly speed: THREE.IUniform<number> = { value: 0.5 };
   private readonly vector: THREE.Vector3;
 
   override readonly geometry: THREE.BufferGeometry;
@@ -61,7 +61,7 @@ export class BulletTrail extends THREE.Mesh {
         objectPosition: { value: this.position },
         scale: { value: this.vector.length() },
         elapsed: this.elapsed,
-        duration: this.duration,
+        duration: this.speed,
       },
       glslVersion: THREE.GLSL3,
       vertexShader: `
@@ -111,14 +111,18 @@ export class BulletTrail extends THREE.Mesh {
           float timeStep = elapsed / duration;
           float size = 1.0 * invScale;
 
-          float upperEdge = smoothstep(2.0 * invScale, 1.5 * invScale, vUv.y);
-          float lowerEdge = smoothstep(0.0 * invScale, 1.5 * invScale, vUv.y);
-          
+          // Bullet
+          float upperEdge = smoothstep(2.0 * invScale, 1.5 * invScale, vUv.y - timeStep);
+          float lowerEdge = smoothstep(0.0 * invScale, 1.5 * invScale, vUv.y - timeStep);
           float horizontal = 1.0 - abs(length(vUv.x) * 2.0 - 1.0);
 
-          float mask = lowerEdge * upperEdge * horizontal;
+          // Smoke
+          float horizontalSmoke = mix(1.0, 0.0, abs(vUv.x * 2.0 - 1.0) + timeStep);
+          float horizontalSmokeFade = smoothstep(-0.5, 0.0, vUv.y - timeStep);
+    
+          float mask = lowerEdge * upperEdge;
 
-          color = vec4(vec3(mask), 1.0);
+          color = vec4(vec3(horizontalSmoke * horizontalSmokeFade), 1.0);
         }
       `,
     });

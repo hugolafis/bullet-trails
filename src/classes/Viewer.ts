@@ -63,7 +63,7 @@ export class Viewer {
     }
 
     this.trail.elapsed.value += dt;
-    this.trail.elapsed.value = this.trail.elapsed.value % this.trail.duration.value; // loop and keep in range
+    this.trail.elapsed.value = this.trail.elapsed.value % this.trail.speed.value; // loop and keep in range
 
     this.renderer.render(this.scene, this.camera);
   };
