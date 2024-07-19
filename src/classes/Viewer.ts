@@ -10,6 +10,8 @@ export class Viewer {
   private readonly canvasSize: THREE.Vector2;
   private readonly renderSize: THREE.Vector2;
 
+  private trail: BulletTrail;
+
   constructor(private readonly renderer: THREE.WebGLRenderer, private readonly canvas: HTMLCanvasElement) {
     this.canvasSize = new THREE.Vector2();
     this.renderSize = new THREE.Vector2();
@@ -31,11 +33,17 @@ export class Viewer {
     // const mesh = new THREE.Mesh(new THREE.BoxGeometry(), new THREE.MeshPhysicalMaterial());
     // this.scene.add(mesh);
 
-    const trail = new BulletTrail({ start: new THREE.Vector3(0, 0, 0), end: new THREE.Vector3(0, 0, 1), duration: 1 });
-    this.scene.add(trail);
+    this.trail = new BulletTrail({
+      start: new THREE.Vector3(2, 0, 0),
+      end: new THREE.Vector3(0, 1, 1),
+      duration: 1,
+    });
+    this.scene.add(this.trail);
 
     const axesHelper = new THREE.AxesHelper();
     this.scene.add(axesHelper);
+
+    this.scene.background = new THREE.Color(0xcccccc);
   }
 
   readonly update = (dt: number) => {
@@ -53,6 +61,9 @@ export class Viewer {
       this.camera.aspect = this.renderSize.x / this.renderSize.y;
       this.camera.updateProjectionMatrix();
     }
+
+    this.trail.elapsed.value += dt;
+    this.trail.elapsed.value = this.trail.elapsed.value % this.trail.duration.value; // loop and keep in range
 
     this.renderer.render(this.scene, this.camera);
   };

@@ -7,10 +7,8 @@ export interface BulletTrailParameters {
 }
 
 export class BulletTrail extends THREE.Mesh {
-  // private readonly start: THREE.Vector3;
-  // private readonly end: THREE.Vector3;
-  private readonly duration = 1;
-  private readonly elapsed = 0;
+  readonly elapsed: THREE.IUniform<number> = { value: 0 };
+  readonly duration: THREE.IUniform<number> = { value: 1 };
   private readonly vector: THREE.Vector3;
 
   override readonly geometry: THREE.BufferGeometry;
@@ -19,19 +17,17 @@ export class BulletTrail extends THREE.Mesh {
   constructor(params: BulletTrailParameters) {
     super();
 
-    // this.start = new THREE.Vector3().copy(params.start);
-    // this.end = new THREE.Vector3().copy(params.end);
-    // const length = this.end.clone().sub(this.start);
+    this.frustumCulled = false; // todo...
 
+    this.position.copy(params.start);
     this.vector = new THREE.Vector3().copy(params.end).sub(params.start);
-    console.log(this.vector);
 
     // prettier-ignore
     const vertices = new Float32Array([
-      -0.5, -0.5, 0.0,
-      0.5, -0.5,  0.0,
-      0.5,  0.5,  0.0,
-     -0.5,  0.5,  0.0,
+      -0.05, 0.0, 0.0,
+      0.05,  0.0,  0.0,
+      0.05,  1.0,  0.0,
+     -0.05,  1.0,  0.0,
     ]);
 
     const indices = [0, 1, 2, 2, 3, 0];
@@ -63,17 +59,19 @@ export class BulletTrail extends THREE.Mesh {
       uniforms: {
         direction: { value: this.vector },
         objectPosition: { value: this.position },
+        scale: { value: this.vector.length() },
+        elapsed: this.elapsed,
+        duration: this.duration,
       },
       glslVersion: THREE.GLSL3,
       vertexShader: `
         uniform vec3 direction;
         uniform vec3 objectPosition;
+        uniform float scale;
         out vec2 vUv;
 
         void main() {
           vUv = uv;
-
-          vec4 worldPosition = modelMatrix * vec4(position, 1.0);
 
           // Compute the look vector
           vec3 look = normalize(cameraPosition - objectPosition);
@@ -89,17 +87,40 @@ export class BulletTrail extends THREE.Mesh {
           rotMatrix[2] = vec4(look, 0.0);
           rotMatrix[3] = vec4(0.0, 0.0, 0.0, 1.0);
 
-          gl_Position = projectionMatrix * modelViewMatrix * rotMatrix * vec4(position, 1.0);
+          vec3 scaledPos = position;
+          scaledPos.y *= scale;
+    
+          gl_Position = projectionMatrix * modelViewMatrix * rotMatrix * vec4(scaledPos, 1.0);
         }
       `,
       fragmentShader: `
         layout(location = 0) out vec4 color;
-        
+
+        uniform float elapsed;
+        uniform float duration;
+
+        uniform float scale;
+
         in vec2 vUv;
+
         void main() {
-          color = vec4(vUv, 0.0, 1.0);
+          float invScale = 1.0 / scale;
+          float timeStep = elapsed / duration;
+
+          float lowerEdge = smoothstep(0.0 + timeStep, 0.2 + timeStep, vUv.y + 0.1);
+          float upperEdge = smoothstep(0.05 + timeStep, 0.0 + timeStep, vUv.y - 0.1);
+          
+          float horizontal = 1.0 - abs(length(vUv.x) * 2.0 - 1.0);
+
+          float mask = lowerEdge * upperEdge * horizontal;
+
+          color = vec4(vec3(mask), 1.0);
         }
       `,
     });
+  }
+
+  update(dt: number) {
+    this.elapsed.value += dt;
   }
 }
