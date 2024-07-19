@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+import { BulletTrail } from './BulletTrail';
 
 export class Viewer {
   private camera: THREE.PerspectiveCamera;
@@ -27,8 +28,14 @@ export class Viewer {
     this.scene.add(sun);
     this.scene.add(ambient);
 
-    const mesh = new THREE.Mesh(new THREE.BoxGeometry(), new THREE.MeshPhysicalMaterial());
-    this.scene.add(mesh);
+    // const mesh = new THREE.Mesh(new THREE.BoxGeometry(), new THREE.MeshPhysicalMaterial());
+    // this.scene.add(mesh);
+
+    const trail = new BulletTrail({ start: new THREE.Vector3(0, 0, 0), end: new THREE.Vector3(0, 0, 1), duration: 1 });
+    this.scene.add(trail);
+
+    const axesHelper = new THREE.AxesHelper();
+    this.scene.add(axesHelper);
   }
 
   readonly update = (dt: number) => {
