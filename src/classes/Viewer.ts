@@ -33,10 +33,10 @@ export class Viewer {
     this.particleManager = new ParticleManager(this.scene);
 
     this.camera = new THREE.PerspectiveCamera(75, this.canvas.clientWidth / this.canvas.clientHeight);
-    this.camera.position.set(-2, 1, 1);
+    this.camera.position.set(-5, 5, 5);
 
     this.controls = new OrbitControls(this.camera, this.canvas);
-    this.controls.target.set(2, 0, 0);
+    this.controls.target.set(5, 0, 0);
 
     this.raycaster = new THREE.Raycaster();
 
@@ -102,26 +102,6 @@ export class Viewer {
 
       this.particleManager.add(new SmokeTrail({ start: near, end: far, lifetime: 0.25, velocity: bulletfx.velocity }));
     });
-
-    //this.effectComposer.renderToScreen = true;
-
-    // const mesh = new THREE.Mesh(new THREE.BoxGeometry(), new THREE.MeshPhysicalMaterial());
-    // this.scene.add(mesh);
-
-    // this.trail = new BulletTrail({
-    //   start: new THREE.Vector3(1, 0, 0),
-    //   end: new THREE.Vector3(15, 1, 1),
-    //   duration: 1,
-    // });
-    // this.scene.add(this.trail);
-
-    // this.particleManager.add(
-    //   new Bullet({ start: new THREE.Vector3(1, 0, 0), end: new THREE.Vector3(15, 1, 1), lifetime: 1 })
-    // );
-
-    // this.particleManager.add(
-    //   new SmokeTrail({ start: new THREE.Vector3(1, 0, 0), end: new THREE.Vector3(15, 1, 1), lifetime: 0.25 })
-    // );
 
     const axesHelper = new THREE.AxesHelper();
     this.scene.add(axesHelper);

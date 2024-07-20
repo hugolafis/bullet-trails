@@ -127,7 +127,6 @@ export class SmokeTrail extends Particle {
           float linearSmokeFade = step(1.0, 1.0 - vUv.y + lengthStep);
     
           float smokeMask = max(horizontalSmoke * linearSmokeFade, 0.0);
-          //float smokeMask = max(horizontalSmoke, 0.0);
 
           vec3 smokeColour = vec3(0.8, 0.8, 0.8);
 

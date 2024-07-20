@@ -11,8 +11,8 @@ export interface BulletParameters {
 export class Bullet extends Particle {
   lifetime: number;
   readonly _elapsed: THREE.IUniform<number> = { value: 0 };
-  //readonly speed: THREE.IUniform<number> = { value: 253 }; // approx 253m/s for .45 caliber
-  readonly velocity = 253;
+  readonly emissiveIntensity: THREE.IUniform<number> = { value: (Math.random() + 0.5) * 5.0 };
+  readonly velocity = 253; // m/s
   private readonly direction: THREE.Vector3;
 
   override readonly geometry: THREE.BufferGeometry;
@@ -67,6 +67,7 @@ export class Bullet extends Particle {
       uniforms: {
         direction: { value: this.direction },
         objectPosition: { value: this.position },
+        emissiveIntensity: this.emissiveIntensity,
       },
       glslVersion: THREE.GLSL3,
       vertexShader: `
@@ -99,6 +100,8 @@ export class Bullet extends Particle {
       fragmentShader: `
         layout(location = 0) out vec4 color;
 
+        uniform float emissiveIntensity; 
+
         in vec2 vUv;
 
         void main() {
@@ -112,7 +115,7 @@ export class Bullet extends Particle {
 
           float mask = lowerEdge * upperEdge * horizontal;
 
-          vec3 bulletColour = vec3(1.0, 1.0, 0.4) * 5.0;
+          vec3 bulletColour = vec3(1.0, 1.0, 0.4) * emissiveIntensity;
 
           vec4 finalBullet = vec4(bulletColour, mask);
 
