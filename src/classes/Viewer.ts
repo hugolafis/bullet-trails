@@ -1,6 +1,10 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
-import { BulletTrail } from './BulletTrail';
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer';
+import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass';
+import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass';
+import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass';
+import { BulletTrail } from './particles/BulletTrail';
 
 export class Viewer {
   private camera: THREE.PerspectiveCamera;
@@ -11,6 +15,8 @@ export class Viewer {
   private readonly renderSize: THREE.Vector2;
 
   private trail: BulletTrail;
+  private effectComposer: EffectComposer;
+  private rt: THREE.WebGLRenderTarget;
 
   constructor(private readonly renderer: THREE.WebGLRenderer, private readonly canvas: HTMLCanvasElement) {
     this.canvasSize = new THREE.Vector2();
@@ -30,6 +36,13 @@ export class Viewer {
     this.scene.add(sun);
     this.scene.add(ambient);
 
+    this.rt = new THREE.WebGLRenderTarget(1, 1);
+    this.effectComposer = new EffectComposer(renderer, this.rt);
+    this.effectComposer.addPass(new RenderPass(this.scene, this.camera));
+    this.effectComposer.addPass(new UnrealBloomPass(renderer.getSize(new THREE.Vector2()), 1.5, 0.4, 0.85));
+    this.effectComposer.addPass(new OutputPass());
+    //this.effectComposer.renderToScreen = true;
+
     // const mesh = new THREE.Mesh(new THREE.BoxGeometry(), new THREE.MeshPhysicalMaterial());
     // this.scene.add(mesh);
 
@@ -43,7 +56,7 @@ export class Viewer {
     const axesHelper = new THREE.AxesHelper();
     this.scene.add(axesHelper);
 
-    this.scene.background = new THREE.Color(0xcccccc);
+    this.scene.background = new THREE.Color(0x222233);
   }
 
   readonly update = (dt: number) => {
@@ -57,6 +70,7 @@ export class Viewer {
     if (!this.renderSize.equals(this.canvasSize)) {
       this.renderSize.copy(this.canvasSize);
       this.renderer.setSize(this.renderSize.x, this.renderSize.y, false);
+      this.effectComposer.setSize(this.renderSize.x, this.renderSize.y);
 
       this.camera.aspect = this.renderSize.x / this.renderSize.y;
       this.camera.updateProjectionMatrix();
@@ -65,6 +79,7 @@ export class Viewer {
     this.trail.elapsed.value += dt;
     this.trail.elapsed.value = this.trail.elapsed.value % this.trail.speed.value; // loop and keep in range
 
-    this.renderer.render(this.scene, this.camera);
+    //this.renderer.render(this.scene, this.camera);
+    this.effectComposer.render(dt);
   };
 }

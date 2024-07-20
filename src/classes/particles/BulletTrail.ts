@@ -56,6 +56,7 @@ export class BulletTrail extends THREE.Mesh {
 
     this.material = new THREE.ShaderMaterial({
       side: THREE.DoubleSide,
+      transparent: true,
       uniforms: {
         direction: { value: this.vector },
         objectPosition: { value: this.position },
@@ -117,12 +118,24 @@ export class BulletTrail extends THREE.Mesh {
           float horizontal = 1.0 - abs(length(vUv.x) * 2.0 - 1.0);
 
           // Smoke
-          float horizontalSmoke = mix(1.0, 0.0, abs(vUv.x * 2.0 - 1.0) + timeStep);
-          float horizontalSmokeFade = smoothstep(-0.5, 0.0, vUv.y - timeStep);
+          float horizontalSmoke = pow(mix(1.0, 0.0, abs(vUv.x * 2.0 - 1.0)), 2.0);
+          //float horizontalSmokeFade = smoothstep(-1.0, 0.0, vUv.y - timeStep * 2.0);
+          float horizontalSmokeFade = mix(1.0 - timeStep * 1.0, 1.0, vUv.y) - timeStep;
+          horizontalSmokeFade *= 1.0 - timeStep;
     
-          float mask = lowerEdge * upperEdge;
+          float mask = lowerEdge * upperEdge * horizontal;
+          float smokeMask = horizontalSmoke * horizontalSmokeFade;
+          //float smokeMask = horizontalSmokeFade;
 
-          color = vec4(vec3(horizontalSmoke * horizontalSmokeFade), 1.0);
+          //color = vec4(vec3(horizontalSmoke * horizontalSmokeFade), 1.0);
+
+          vec3 bulletColour = vec3(1.0, 0.9, 0.1) * 5.0;
+          vec3 smokeColour = vec3(0.8, 0.8, 0.8);
+
+          vec4 finalBullet = vec4(bulletColour * mask, mask);
+          vec4 finalSmoke = vec4(smokeColour, smokeMask * 0.15);
+
+          color = finalBullet;
         }
       `,
     });

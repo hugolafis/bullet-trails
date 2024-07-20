@@ -21,7 +21,7 @@ const renderer = new THREE.WebGLRenderer({
 renderer.setPixelRatio(1); // for DPI scaling set to window.devicePixelRatio
 renderer.setSize(1, 1, false);
 renderer.outputColorSpace = THREE.SRGBColorSpace;
-renderer.toneMapping = THREE.LinearToneMapping;
+renderer.toneMapping = THREE.AgXToneMapping;
 renderer.toneMappingExposure = 1.0;
 
 const viewer = new Viewer(renderer, canvas);
