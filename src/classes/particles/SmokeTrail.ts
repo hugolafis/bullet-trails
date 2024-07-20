@@ -5,11 +5,13 @@ export interface BulletTrailParameters {
   start: THREE.Vector3;
   end: THREE.Vector3;
   lifetime: number;
+  velocity: number;
 }
 
 export class SmokeTrail extends Particle {
   readonly _elapsed: THREE.IUniform<number> = { value: 0 };
   readonly _lifetime: THREE.IUniform<number> = { value: 0 };
+  readonly _velocity: THREE.IUniform<number> = { value: 0 };
   private readonly vector: THREE.Vector3;
 
   readonly geometry: THREE.BufferGeometry;
@@ -20,6 +22,7 @@ export class SmokeTrail extends Particle {
 
     this.frustumCulled = false; // todo...
     this._lifetime.value = params.lifetime;
+    this._velocity.value = params.velocity;
 
     this.position.copy(params.start);
     this.vector = new THREE.Vector3().copy(params.end).sub(params.start);
@@ -66,6 +69,7 @@ export class SmokeTrail extends Particle {
         scale: { value: this.vector.length() },
         elapsed: this._elapsed,
         duration: this._lifetime,
+        velocity: this._velocity,
       },
       glslVersion: THREE.GLSL3,
       vertexShader: `
@@ -106,6 +110,8 @@ export class SmokeTrail extends Particle {
 
         uniform float elapsed;
         uniform float duration;
+        uniform float velocity;
+        uniform float scale;
 
         flat in float invScale;
 
@@ -114,28 +120,17 @@ export class SmokeTrail extends Particle {
         void main() {
           float timeStep = elapsed / duration;
           float size = 1.0 * invScale;
-
-          // Bullet
-          float upperEdge = smoothstep(2.0 * invScale, 1.5 * invScale, vUv.y - timeStep);
-          float lowerEdge = smoothstep(0.0 * invScale, 1.5 * invScale, vUv.y - timeStep);
-          float horizontal = 1.0 - abs(length(vUv.x) * 2.0 - 1.0);
+          float lengthStep = (velocity / scale) * elapsed;
 
           // Smoke
-          float horizontalSmoke = pow(mix(1.0, 0.0, abs(vUv.x * 2.0 - 1.0)), 2.0);
-          //float horizontalSmokeFade = smoothstep(-1.0, 0.0, vUv.y - timeStep * 2.0);
-          float horizontalSmokeFade = mix(1.0 - timeStep * 1.0, 1.0, vUv.y) - timeStep;
-          horizontalSmokeFade *= 1.0 - timeStep;
+          float horizontalSmoke = pow(mix(1.0, 0.0, abs(vUv.x * 2.0 - 1.0)), 2.0) * 1.0 - timeStep;
+          float linearSmokeFade = step(1.0, 1.0 - vUv.y + lengthStep);
     
-          float mask = lowerEdge * upperEdge * horizontal;
-          float smokeMask = horizontalSmoke * horizontalSmokeFade;
-          //float smokeMask = horizontalSmokeFade;
+          float smokeMask = max(horizontalSmoke * linearSmokeFade, 0.0);
+          //float smokeMask = max(horizontalSmoke, 0.0);
 
-          //color = vec4(vec3(horizontalSmoke * horizontalSmokeFade), 1.0);
-
-          vec3 bulletColour = vec3(1.0, 0.9, 0.1) * 5.0;
           vec3 smokeColour = vec3(0.8, 0.8, 0.8);
 
-          vec4 finalBullet = vec4(bulletColour * mask, mask);
           vec4 finalSmoke = vec4(smokeColour, smokeMask * 0.25);
 
           color = finalSmoke;

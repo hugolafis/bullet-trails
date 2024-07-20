@@ -12,7 +12,7 @@ export class Bullet extends Particle {
   lifetime: number;
   readonly _elapsed: THREE.IUniform<number> = { value: 0 };
   //readonly speed: THREE.IUniform<number> = { value: 253 }; // approx 253m/s for .45 caliber
-  readonly velocity = 200;
+  readonly velocity = 253;
   private readonly direction: THREE.Vector3;
 
   override readonly geometry: THREE.BufferGeometry;
@@ -112,9 +112,9 @@ export class Bullet extends Particle {
 
           float mask = lowerEdge * upperEdge * horizontal;
 
-          vec3 bulletColour = vec3(1.0, 0.9, 0.1) * 5.0;
+          vec3 bulletColour = vec3(1.0, 1.0, 0.4) * 5.0;
 
-          vec4 finalBullet = vec4(bulletColour * mask, mask);
+          vec4 finalBullet = vec4(bulletColour, mask);
 
           color = finalBullet;
         }

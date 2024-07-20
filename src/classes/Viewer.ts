@@ -19,6 +19,8 @@ export class Viewer {
   private particleManager: ParticleManager;
   private raycaster: THREE.Raycaster;
 
+  private elapsed = 0; // testing - remove
+
   //private trail: BulletTrail;
   private effectComposer: EffectComposer;
   private rt: THREE.WebGLRenderTarget;
@@ -44,7 +46,7 @@ export class Viewer {
     this.scene.add(sun);
     this.scene.add(ambient);
 
-    this.rt = new THREE.WebGLRenderTarget(1, 1, { type: THREE.FloatType });
+    this.rt = new THREE.WebGLRenderTarget(1, 1, { type: THREE.FloatType }); // important! - this needs to be float for bloom to work correctly!
     this.effectComposer = new EffectComposer(renderer, this.rt);
     this.effectComposer.addPass(new RenderPass(this.scene, this.camera));
     this.effectComposer.addPass(new UnrealBloomPass(renderer.getSize(new THREE.Vector2()), 0.6, 0.4, 0.9));
@@ -95,9 +97,10 @@ export class Viewer {
       const near = new THREE.Vector3(1, -0.5, -1).applyMatrix4(this.camera.matrixWorld);
 
       // Make the particles
-      this.particleManager.add(new Bullet({ start: near, end: far, lifetime: 1 }));
+      const bulletfx = new Bullet({ start: near, end: far, lifetime: 1 });
+      this.particleManager.add(bulletfx);
 
-      this.particleManager.add(new SmokeTrail({ start: near, end: far, lifetime: 0.25 }));
+      this.particleManager.add(new SmokeTrail({ start: near, end: far, lifetime: 0.25, velocity: bulletfx.velocity }));
     });
 
     //this.effectComposer.renderToScreen = true;
@@ -128,6 +131,22 @@ export class Viewer {
 
   readonly update = (dt: number) => {
     this.controls.update();
+
+    // testing, remove
+    this.elapsed += dt;
+    const rof = 0.1 + Math.random() * 3;
+    if (this.elapsed >= rof) {
+      const start = new THREE.Vector3(0, 1, 0);
+      const random = new THREE.Vector3().randomDirection();
+      const end = new THREE.Vector3(50, 1, 0);
+
+      end.add(random);
+      const bulletfx = new Bullet({ start, end, lifetime: 1 });
+      this.particleManager.add(bulletfx);
+      this.particleManager.add(new SmokeTrail({ start, end, lifetime: 0.25, velocity: bulletfx.velocity }));
+
+      this.elapsed = this.elapsed % rof;
+    }
 
     // Do we need to resize the renderer?
     this.canvasSize.set(
