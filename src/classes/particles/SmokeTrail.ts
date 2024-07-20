@@ -26,10 +26,10 @@ export class SmokeTrail extends Particle {
 
     // prettier-ignore
     const vertices = new Float32Array([
-      -0.1, 0.0, 0.0,
-      0.1,  0.0,  0.0,
-      0.1,  1.0,  0.0,
-     -0.1,  1.0,  0.0,
+      -0.05, 0.0, 0.0,
+      0.05,  0.0,  0.0,
+      0.05,  1.0,  0.0,
+     -0.05,  1.0,  0.0,
     ]);
 
     const indices = [0, 1, 2, 2, 3, 0];

@@ -33,8 +33,8 @@ export class Bullet extends Particle {
     const vertices = new Float32Array([
       -0.1, 0.0, 0.0,
       0.1,  0.0,  0.0,
-      0.1,  2.0,  0.0,
-     -0.1,  2.0,  0.0,
+      0.1,  3.0,  0.0,
+     -0.1,  3.0,  0.0,
     ]);
 
     const indices = [0, 1, 2, 2, 3, 0];
