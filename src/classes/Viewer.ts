@@ -5,6 +5,9 @@ import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass';
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass';
 import { BulletTrail } from './particles/BulletTrail';
+import { ParticleManager } from './particles/ParticleManager';
+import { SmokeTrail } from './particles/SmokeTrail';
+import { Bullet } from './particles/Bullet';
 
 export class Viewer {
   private camera: THREE.PerspectiveCamera;
@@ -14,7 +17,9 @@ export class Viewer {
   private readonly canvasSize: THREE.Vector2;
   private readonly renderSize: THREE.Vector2;
 
-  private trail: BulletTrail;
+  private particleManager: ParticleManager;
+
+  //private trail: BulletTrail;
   private effectComposer: EffectComposer;
   private rt: THREE.WebGLRenderTarget;
 
@@ -23,12 +28,13 @@ export class Viewer {
     this.renderSize = new THREE.Vector2();
 
     this.scene = new THREE.Scene();
+    this.particleManager = new ParticleManager(this.scene);
 
     this.camera = new THREE.PerspectiveCamera(75, this.canvas.clientWidth / this.canvas.clientHeight);
-    this.camera.position.set(1, 1, 1);
+    this.camera.position.set(-2, 1, 1);
 
     this.controls = new OrbitControls(this.camera, this.canvas);
-    this.controls.target.set(0, 0, 0);
+    this.controls.target.set(2, 0, 0);
 
     const sun = new THREE.DirectionalLight(undefined, Math.PI); // undo physically correct changes
     sun.position.copy(new THREE.Vector3(0.75, 1, 0.5).normalize());
@@ -46,12 +52,20 @@ export class Viewer {
     // const mesh = new THREE.Mesh(new THREE.BoxGeometry(), new THREE.MeshPhysicalMaterial());
     // this.scene.add(mesh);
 
-    this.trail = new BulletTrail({
-      start: new THREE.Vector3(1, 0, 0),
-      end: new THREE.Vector3(15, 1, 1),
-      duration: 1,
-    });
-    this.scene.add(this.trail);
+    // this.trail = new BulletTrail({
+    //   start: new THREE.Vector3(1, 0, 0),
+    //   end: new THREE.Vector3(15, 1, 1),
+    //   duration: 1,
+    // });
+    // this.scene.add(this.trail);
+
+    this.particleManager.add(
+      new Bullet({ start: new THREE.Vector3(1, 0, 0), end: new THREE.Vector3(15, 1, 1), lifetime: 1 })
+    );
+
+    this.particleManager.add(
+      new SmokeTrail({ start: new THREE.Vector3(1, 0, 0), end: new THREE.Vector3(15, 1, 1), lifetime: 0.25 })
+    );
 
     const axesHelper = new THREE.AxesHelper();
     this.scene.add(axesHelper);
@@ -76,8 +90,10 @@ export class Viewer {
       this.camera.updateProjectionMatrix();
     }
 
-    this.trail.elapsed.value += dt;
-    this.trail.elapsed.value = this.trail.elapsed.value % this.trail.speed.value; // loop and keep in range
+    this.particleManager.update(dt);
+
+    // this.trail.elapsed.value += dt;
+    // this.trail.elapsed.value = this.trail.elapsed.value % this.trail.speed.value; // loop and keep in range
 
     //this.renderer.render(this.scene, this.camera);
     this.effectComposer.render(dt);

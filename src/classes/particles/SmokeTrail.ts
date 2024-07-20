@@ -1,34 +1,35 @@
 import * as THREE from 'three';
+import { Particle } from './Particle';
 
 export interface BulletTrailParameters {
   start: THREE.Vector3;
   end: THREE.Vector3;
-  duration?: number;
+  lifetime: number;
 }
 
-export class BulletTrail extends THREE.Mesh {
-  readonly elapsed: THREE.IUniform<number> = { value: 0 };
-  readonly speed: THREE.IUniform<number> = { value: 0.5 };
+export class SmokeTrail extends Particle {
+  readonly _elapsed: THREE.IUniform<number> = { value: 0 };
+  readonly _lifetime: THREE.IUniform<number> = { value: 0 };
   private readonly vector: THREE.Vector3;
 
-  override readonly geometry: THREE.BufferGeometry;
-  override readonly material: THREE.ShaderMaterial;
+  readonly geometry: THREE.BufferGeometry;
+  readonly material: THREE.ShaderMaterial;
 
   constructor(params: BulletTrailParameters) {
     super();
 
     this.frustumCulled = false; // todo...
-    this.renderOrder = 1;
+    this._lifetime.value = params.lifetime;
 
     this.position.copy(params.start);
     this.vector = new THREE.Vector3().copy(params.end).sub(params.start);
 
     // prettier-ignore
     const vertices = new Float32Array([
-      -0.05, 0.0, 0.0,
-      0.05,  0.0,  0.0,
-      0.05,  1.0,  0.0,
-     -0.05,  1.0,  0.0,
+      -0.1, 0.0, 0.0,
+      0.1,  0.0,  0.0,
+      0.1,  1.0,  0.0,
+     -0.1,  1.0,  0.0,
     ]);
 
     const indices = [0, 1, 2, 2, 3, 0];
@@ -58,12 +59,13 @@ export class BulletTrail extends THREE.Mesh {
     this.material = new THREE.ShaderMaterial({
       side: THREE.DoubleSide,
       transparent: true,
+      depthWrite: false,
       uniforms: {
         direction: { value: this.vector },
         objectPosition: { value: this.position },
         scale: { value: this.vector.length() },
-        elapsed: this.elapsed,
-        duration: this.speed,
+        elapsed: this._elapsed,
+        duration: this._lifetime,
       },
       glslVersion: THREE.GLSL3,
       vertexShader: `
@@ -81,7 +83,7 @@ export class BulletTrail extends THREE.Mesh {
           vec3 look = normalize(cameraPosition - objectPosition);
 
           // Compute the right vector
-          vec3 up = normalize(direction);
+          vec3 up = normalize(direction); // todo take this from the objects velocity
           vec3 right = normalize(cross(up, look));
 
           // Create the rotation matrix
@@ -136,13 +138,30 @@ export class BulletTrail extends THREE.Mesh {
           vec4 finalBullet = vec4(bulletColour * mask, mask);
           vec4 finalSmoke = vec4(smokeColour, smokeMask * 0.15);
 
-          color = finalBullet;
+          color = finalSmoke;
         }
       `,
     });
   }
 
+  get elapsed() {
+    return this._elapsed.value;
+  }
+
+  get lifetime() {
+    return this._lifetime.value;
+  }
+
+  // set elapsed(val: number) {
+  //   this._elapsed.value = val;
+  // }
+
+  dispose(): void {
+    //throw new Error('Method not implemented.');
+  }
+
   update(dt: number) {
-    this.elapsed.value += dt;
+    this._elapsed.value += dt;
+    //this._elapsed.value = this._elapsed.value % this.lifetime; // todo remove
   }
 }

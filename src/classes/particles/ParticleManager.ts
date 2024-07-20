@@ -10,14 +10,14 @@ export class ParticleManager {
 
   add(p: Particle) {
     this.particles.add(p);
-    this.scene.add(...p.objects);
+    this.scene.add(p);
   }
 
   update(dt: number) {
     this.particles.forEach(particle => {
       particle.update(dt);
 
-      if (particle.elapsed >= particle.lifetime) {
+      if (particle.lifetime && particle.elapsed >= particle.lifetime) {
         this.destroyParticle(particle);
       }
     });
@@ -25,7 +25,7 @@ export class ParticleManager {
 
   private destroyParticle(p: Particle) {
     p.dispose();
-    this.scene.remove(...p.objects);
+    this.scene.remove(p);
     this.particles.delete(p);
   }
 }
