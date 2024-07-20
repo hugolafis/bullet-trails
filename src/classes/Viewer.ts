@@ -44,10 +44,10 @@ export class Viewer {
     this.scene.add(sun);
     this.scene.add(ambient);
 
-    this.rt = new THREE.WebGLRenderTarget(1, 1);
+    this.rt = new THREE.WebGLRenderTarget(1, 1, { type: THREE.FloatType });
     this.effectComposer = new EffectComposer(renderer, this.rt);
     this.effectComposer.addPass(new RenderPass(this.scene, this.camera));
-    this.effectComposer.addPass(new UnrealBloomPass(renderer.getSize(new THREE.Vector2()), 0.6, 0.4, 0.85));
+    this.effectComposer.addPass(new UnrealBloomPass(renderer.getSize(new THREE.Vector2()), 0.6, 0.4, 0.9));
     this.effectComposer.addPass(new OutputPass());
 
     // Scene setup
