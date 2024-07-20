@@ -4,7 +4,6 @@ import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass';
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass';
-import { BulletTrail } from './particles/BulletTrail';
 import { ParticleManager } from './particles/ParticleManager';
 import { SmokeTrail } from './particles/SmokeTrail';
 import { Bullet } from './particles/Bullet';

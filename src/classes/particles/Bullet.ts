@@ -129,7 +129,7 @@ export class Bullet extends Particle {
   update(dt: number) {
     const step = this.direction.clone().multiplyScalar(this.velocity * dt);
     this.position.add(step);
-    //this._elapsed.value += dt;
+    this._elapsed.value += dt;
   }
 
   dispose(): void {
