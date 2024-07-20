@@ -136,7 +136,7 @@ export class SmokeTrail extends Particle {
           vec3 smokeColour = vec3(0.8, 0.8, 0.8);
 
           vec4 finalBullet = vec4(bulletColour * mask, mask);
-          vec4 finalSmoke = vec4(smokeColour, smokeMask * 0.15);
+          vec4 finalSmoke = vec4(smokeColour, smokeMask * 0.25);
 
           color = finalSmoke;
         }

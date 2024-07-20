@@ -12,7 +12,7 @@ export class Bullet extends Particle {
   lifetime: number;
   readonly _elapsed: THREE.IUniform<number> = { value: 0 };
   //readonly speed: THREE.IUniform<number> = { value: 253 }; // approx 253m/s for .45 caliber
-  readonly velocity = 150;
+  readonly velocity = 200;
   private readonly direction: THREE.Vector3;
 
   override readonly geometry: THREE.BufferGeometry;
@@ -31,10 +31,10 @@ export class Bullet extends Particle {
 
     // prettier-ignore
     const vertices = new Float32Array([
-      -0.05, 0.0, 0.0,
-      0.05,  0.0,  0.0,
-      0.05,  1.0,  0.0,
-     -0.05,  1.0,  0.0,
+      -0.1, 0.0, 0.0,
+      0.1,  0.0,  0.0,
+      0.1,  2.0,  0.0,
+     -0.1,  2.0,  0.0,
     ]);
 
     const indices = [0, 1, 2, 2, 3, 0];

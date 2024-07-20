@@ -18,6 +18,7 @@ export class Viewer {
   private readonly renderSize: THREE.Vector2;
 
   private particleManager: ParticleManager;
+  private raycaster: THREE.Raycaster;
 
   //private trail: BulletTrail;
   private effectComposer: EffectComposer;
@@ -36,6 +37,8 @@ export class Viewer {
     this.controls = new OrbitControls(this.camera, this.canvas);
     this.controls.target.set(2, 0, 0);
 
+    this.raycaster = new THREE.Raycaster();
+
     const sun = new THREE.DirectionalLight(undefined, Math.PI); // undo physically correct changes
     sun.position.copy(new THREE.Vector3(0.75, 1, 0.5).normalize());
     const ambient = new THREE.AmbientLight(undefined, 0.25);
@@ -45,8 +48,59 @@ export class Viewer {
     this.rt = new THREE.WebGLRenderTarget(1, 1);
     this.effectComposer = new EffectComposer(renderer, this.rt);
     this.effectComposer.addPass(new RenderPass(this.scene, this.camera));
-    this.effectComposer.addPass(new UnrealBloomPass(renderer.getSize(new THREE.Vector2()), 1.5, 0.4, 0.85));
+    this.effectComposer.addPass(new UnrealBloomPass(renderer.getSize(new THREE.Vector2()), 0.6, 0.4, 0.85));
     this.effectComposer.addPass(new OutputPass());
+
+    // Scene setup
+    const floor = new THREE.Mesh(
+      new THREE.PlaneGeometry(50, 50).rotateX(-Math.PI / 2),
+      new THREE.MeshStandardMaterial({ color: new THREE.Color(0xcccccc) })
+    );
+    this.scene.add(floor);
+
+    const numObjects = 50;
+    const boxGeo = new THREE.BoxGeometry();
+    const material = new THREE.MeshStandardMaterial();
+    const randomDirection = new THREE.Vector3();
+    for (let i = 0; i < numObjects; i++) {
+      randomDirection.randomDirection();
+      randomDirection.y = 0;
+      randomDirection.normalize();
+
+      const mesh = new THREE.Mesh(boxGeo, material);
+      const distance = Math.sqrt(Math.random() * 17.68) * 5;
+      mesh.position.copy(randomDirection.multiplyScalar(distance));
+      mesh.position.y += 0.5;
+
+      const randScale = Math.random() + 1;
+      mesh.scale.multiplyScalar(randScale);
+      mesh.position.y += (randScale - 1) * 0.5;
+
+      this.scene.add(mesh);
+    }
+
+    this.canvas.addEventListener('pointerdown', (e: PointerEvent) => {
+      const boundingRect = this.canvas.getBoundingClientRect();
+      const ndc = {
+        x: (e.clientX - boundingRect.left) / boundingRect.width,
+        y: (e.clientY - boundingRect.top) / boundingRect.height,
+      };
+      ndc.y = 1.0 - ndc.y;
+      ndc.x = ndc.x * 2.0 - 1.0;
+      ndc.y = ndc.y * 2.0 - 1.0;
+
+      this.raycaster.setFromCamera(new THREE.Vector2(ndc.x, ndc.y), this.camera);
+      const intersections = this.raycaster.intersectObjects(this.scene.children);
+
+      const far = intersections[0]?.point ?? new THREE.Vector3(ndc.x, ndc.y, 1).unproject(this.camera);
+      const near = new THREE.Vector3(1, -0.5, -1).applyMatrix4(this.camera.matrixWorld);
+
+      // Make the particles
+      this.particleManager.add(new Bullet({ start: near, end: far, lifetime: 1 }));
+
+      this.particleManager.add(new SmokeTrail({ start: near, end: far, lifetime: 0.25 }));
+    });
+
     //this.effectComposer.renderToScreen = true;
 
     // const mesh = new THREE.Mesh(new THREE.BoxGeometry(), new THREE.MeshPhysicalMaterial());
@@ -59,13 +113,13 @@ export class Viewer {
     // });
     // this.scene.add(this.trail);
 
-    this.particleManager.add(
-      new Bullet({ start: new THREE.Vector3(1, 0, 0), end: new THREE.Vector3(15, 1, 1), lifetime: 1 })
-    );
+    // this.particleManager.add(
+    //   new Bullet({ start: new THREE.Vector3(1, 0, 0), end: new THREE.Vector3(15, 1, 1), lifetime: 1 })
+    // );
 
-    this.particleManager.add(
-      new SmokeTrail({ start: new THREE.Vector3(1, 0, 0), end: new THREE.Vector3(15, 1, 1), lifetime: 0.25 })
-    );
+    // this.particleManager.add(
+    //   new SmokeTrail({ start: new THREE.Vector3(1, 0, 0), end: new THREE.Vector3(15, 1, 1), lifetime: 0.25 })
+    // );
 
     const axesHelper = new THREE.AxesHelper();
     this.scene.add(axesHelper);
